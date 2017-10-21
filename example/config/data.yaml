@@ -1,0 +1,4 @@
+^debian$:
+  ^.*$:
+    package_manager: apt
+    package_type: deb
