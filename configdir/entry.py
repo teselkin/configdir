@@ -32,13 +32,25 @@ class EntryPath(object):
 class EntryKey(object):
     def __init__(self, key, subkey=None, sep=None):
         self.sep = sep or ':'
-        self._ = self.split(key)
+        if isinstance(key, list):
+            self._ = []
+            self._.extend(key)
+        else:
+            self._ = self.split(key)
         if subkey:
             self._.extend(self.split(subkey))
 
     def __iter__(self):
         for x in self._:
             yield x
+
+    def __add__(self, other):
+        elements = []
+        for name in self:
+            elements.append(name)
+        for name in other:
+            elements.append(name)
+        return EntryKey(elements)
 
     def __str__(self):
         return self.sep.join(self.elements)
@@ -52,10 +64,6 @@ class EntryKey(object):
             else:
                 raise Exception("Bad input key '{}' - type '{}' unsupported"
                                 .format(key, type(key)))
-
-            for x in reversed(range(len(elements))):
-                if not elements[x]:
-                    elements.pop(x)
         else:
             elements = list()
 
