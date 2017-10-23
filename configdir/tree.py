@@ -46,9 +46,9 @@ class Tree(object):
                         tree = {}
                     part += EntryKey(name)
                     d = d.setdefault(name, {})
-                    dir_entry = tree.get('.')
-                    if dir_entry:
-                        d.setdefault('.', dir_entry)
+                    os_entry = tree.get('.')
+                    if os_entry:
+                        d.setdefault('.', os_entry)
                 else:
                     if self.strict:
                         raise Exception(
@@ -63,7 +63,7 @@ class Tree(object):
                 if name is not None:
                     d.update(tree.get(name, {}))
         except KeyError:
-            print("No DirEntry item for key '{}'".format(name))
+            print("No OsEntry item for key '{}'".format(name))
             raise
 
         return result
