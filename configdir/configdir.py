@@ -6,9 +6,10 @@ import re
 
 
 class ConfigDir(object):
-    def __init__(self, root=None):
+    def __init__(self, root=None, strict=False):
+        self.strict = strict
         self.root = root
-        self._tree = Tree(self.root)
+        self._tree = Tree(self.root, strict=self.strict)
 
     def open(self):
         if os.path.exists(self.root):

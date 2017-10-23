@@ -5,7 +5,8 @@ import os
 
 
 class Tree(object):
-    def __init__(self, root):
+    def __init__(self, root, strict=False):
+        self.strict = strict
         self._ = dict()
         self.root = root
         self.sep = os.sep
@@ -35,13 +36,23 @@ class Tree(object):
             part = EntryKey('')
             for name in key:
                 if name:
+                    try:
+                        tree = tree[name]
+                    except KeyError:
+                        if self.strict:
+                            raise Exception("Bad key '{}' - "
+                                            "name '{}' not in tree."
+                                            .format(str(key), name))
+                        tree = {}
                     part += EntryKey(name)
-                    tree = tree.get(name, {})
                     d = d.setdefault(name, {})
                     dir_entry = tree.get('.')
                     if dir_entry:
                         d.setdefault('.', dir_entry)
                 else:
+                    if self.strict:
+                        raise Exception(
+                            "Empty keys are not allowed in strict mode")
                     for k, v in tree.items():
                         if k.startswith('^'):
                             continue
