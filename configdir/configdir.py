@@ -23,7 +23,7 @@ class ConfigDir(object):
         if key is None:
             key = EntryKey(keystr)
         data = self.dict(key)
-        for name in key.elements:
+        for name in key:
             data = data.get(name, {})
         return data
 
@@ -42,7 +42,7 @@ class ConfigDir(object):
 
         d = result
         tree = self._tree.dict(key)
-        for name in key.elements:
+        for name in key:
             entry = tree.get('.')
             if entry:
                 self.merge_data(d, entry.load(whitelist=[name, ]))
@@ -54,7 +54,7 @@ class ConfigDir(object):
             self.merge_data(d, entry.load())
 
         d = result
-        for name in key.elements:
+        for name in key:
             d = d.setdefault(name, {})
         self.expand_data(result)
 

@@ -36,6 +36,10 @@ class EntryKey(object):
         if subkey:
             self._.extend(self.split(subkey))
 
+    def __iter__(self):
+        for x in self._:
+            yield x
+
     def __str__(self):
         return self.sep.join(self.elements)
 
@@ -56,10 +60,6 @@ class EntryKey(object):
             elements = list()
 
         return elements
-
-    @property
-    def elements(self):
-        return [x for x in self._]
 
 
 class Entry(object):

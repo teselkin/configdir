@@ -12,7 +12,7 @@ class Tree(object):
 
     def new(self, entry):
         d = self._
-        for name in entry.key.elements:
+        for name in entry.key:
             d = d.setdefault(name, {})
         d.setdefault('.', entry)
 
@@ -30,14 +30,17 @@ class Tree(object):
             d = result
             tree = self._
             d.setdefault('.', tree['.'])
+            name = None
             try:
-                for name in key.elements[:-1]:
+                for name in key:
                     tree = tree.get(name, {})
-                    d.setdefault('.', tree['.'])
+                    dir_entry = tree.get('.')
+                    if dir_entry:
+                        d.setdefault('.', dir_entry)
                     d = d.setdefault(name, {})
-                for name in key.elements[-1:]:
-                    d.setdefault('.', tree['.'])
-                    d.setdefault(name, tree.get(name, {}))
+                else:
+                    if name is not None:
+                        d.update(tree.get(name, {}))
             except KeyError:
                 print("No DirEntry item for key '{}'".format(name))
                 raise
@@ -51,4 +54,4 @@ class Tree(object):
         self.new(entry)
 
         for name, value in entry.keys.items():
-            self.scan(name=name, path=value.path, key=entry.key.elements)
+            self.scan(name=name, path=value.path, key=list(entry.key))
