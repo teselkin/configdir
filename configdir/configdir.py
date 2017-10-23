@@ -22,15 +22,12 @@ class ConfigDir(object):
         """
         if key is None:
             key = EntryKey(keystr)
-        data = self.dict(key)
+        data = self.load(key)
         for name in key:
             data = data.get(name, {})
         return data
 
-    def load(self, path):
-        pass
-
-    def dict(self, key=None, keystr=''):
+    def load(self, key=None, keystr=''):
         """
 
         :param key: EntryKey object
@@ -40,25 +37,32 @@ class ConfigDir(object):
         if key is None:
             key = EntryKey(keystr)
 
-        d = result
-        tree = self._tree.dict(key)
-        for name in key:
-            entry = tree.get('.')
-            if entry:
-                self.merge_data(d, entry.load(whitelist=[name, ]))
-            d = d.get(name, {})
-            tree = tree.get(name, {})
-
-        entry = tree.get('.')
-        if entry:
-            self.merge_data(d, entry.load())
+        tree = self._tree.load(key)
+        self.load_tree(tree, result)
 
         d = result
         for name in key:
-            d = d.setdefault(name, {})
+            if name:
+                d = d.setdefault(name, {})
         self.expand_data(result)
 
         return result
+
+    def load_tree(self, tree, result):
+        d = result
+        keys = list(tree.keys())
+        try:
+            keys.remove('.')
+        except:
+            pass
+        entry = tree.get('.')
+        if entry:
+            self.merge_data(d, entry.load(whitelist=keys))
+        for name in keys:
+            subtree = tree[name]
+            if isinstance(subtree, dict):
+                d.setdefault(name, {})
+                self.load_tree(subtree, d[name])
 
     def merge_data(self, d1, d2):
         if not isinstance(d1, dict):
