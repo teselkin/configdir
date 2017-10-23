@@ -53,7 +53,7 @@ class EntryKey(object):
         return EntryKey(elements)
 
     def __str__(self):
-        return self.sep.join(self.elements)
+        return self.sep.join(self._)
 
     def split(self, key):
         if key:
