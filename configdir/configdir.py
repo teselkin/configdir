@@ -35,7 +35,7 @@ class ConfigDir(object):
 
         for name in key:
             try:
-                d = d[name]
+                d = (d.get(name) or d['*'])
             except KeyError:
                 if self.strict:
                     raise Exception("Bad key '{}' - '{}' not found"
