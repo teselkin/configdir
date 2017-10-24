@@ -78,11 +78,14 @@ class Entry(object):
         self.files = dict()
         self.data = dict()
         self.patterns = dict()
+        self.special = {
+            '_any_': '*',
+        }
 
     def scan(self):
         for x in os.scandir(str(self.path)):
             if x.is_dir():
-                self.keys[x.name] = x
+                self.keys[self.special.get(x.name, x.name)] = x
             else:
                 self.files[x.name] = x
 
