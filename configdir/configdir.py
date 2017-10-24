@@ -10,7 +10,7 @@ class ConfigDir(object):
         self.strict = strict
         self.root.scan()
 
-    def get(self, key):
+    def get(self, key, recursive=True):
         if isinstance(key, str):
             key = EntryKey(key)
 
@@ -24,9 +24,10 @@ class ConfigDir(object):
             xdict = x.dict()
             merge_dict(d, xdict)
         else:
-            if x:
-                xdict = x.dict(recursive=True)
-                merge_dict(d, xdict)
+            if recursive:
+                if x:
+                    xdict = x.dict(recursive=True)
+                    merge_dict(d, xdict)
 
         expand_dict(data, recursive=True)
 
@@ -44,14 +45,15 @@ class ConfigDir(object):
 
         return d
 
-    def getall(self):
+    def getall(self, recursive=True):
         data = dict()
-        self.root.scan(recursive=True)
+        self.root.scan()
         xdict = self.root.dict()
         merge_dict(data, xdict)
 
         for x in self.root:
-            xdict = x.dict(recursive=True)
+            x.scan(recursive=recursive)
+            xdict = x.dict(recursive=recursive)
             merge_dict(data.setdefault(x.name, {}), xdict)
 
         expand_dict(data, recursive=True)
