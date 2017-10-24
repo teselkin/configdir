@@ -1,77 +1,64 @@
 from configdir.entry import Entry
-from configdir.entry import EntryKey
 
-import os
+from configdir.utils import merge_dict
 
 
 class Tree(object):
-    def __init__(self, root, strict=False):
-        self.strict = strict
-        self._ = dict()
-        self.root = root
-        self.sep = os.sep
-        self.keysep = ':'
+    def __init__(self, name=None, parent=None, entry=None):
+        self.name = name
+        self.parent = parent
+        self._children = dict()
+        self.entry = entry
 
-    def new(self, entry):
-        d = self._
-        for name in entry.key:
-            d = d.setdefault(name, {})
-        d.setdefault('.', entry)
+    @classmethod
+    def root(cls, path):
+        return Tree(entry=Entry(path=path))
 
-    def __str__(self):
-        return str(self._)
+    def add_child(self, item):
+        self._children[item.name] = item
 
-    def load(self, key=None):
-        """
+    def __iter__(self):
+        for x in self._children.values():
+            yield x
 
-        :param key: DatabaseEntryKey object
-        :return:
-        """
-        result = dict()
-        d = result
-        tree = self._
-        d.setdefault('.', tree['.'])
-        name = None
-        try:
-            part = EntryKey('')
-            for name in key:
-                if name:
-                    try:
-                        tree = tree[name]
-                    except KeyError:
-                        if self.strict:
-                            raise Exception("Bad key '{}' - "
-                                            "name '{}' not in tree."
-                                            .format(str(key), name))
-                        tree = {}
-                    part += EntryKey(name)
-                    d = d.setdefault(name, {})
-                    os_entry = tree.get('.')
-                    if os_entry:
-                        d.setdefault('.', os_entry)
+    def scan(self, recursive=False):
+        for name, path in self.entry.scan():
+            entry = Entry(name=name, path=path)
+            self.add_child(Tree(name=name, parent=self, entry=entry))
+        if recursive:
+            for child in self:
+                child.scan(recursive=recursive)
+
+    def child(self, name):
+        return self._children.get(name)
+
+    def select(self, key):
+        tree = [self, ]
+        for name in key:
+            if name:
+                child = tree[-1].child(name)
+                if child:
+                    child.scan()
+                    tree.append(child)
                 else:
-                    if self.strict:
-                        raise Exception(
-                            "Empty keys are not allowed in strict mode")
-                    for k, v in tree.items():
-                        if k.startswith('^'):
-                            continue
-                        if k == '.':
-                            continue
-                        d.setdefault(k, self.load(part + EntryKey(k)))
+                    tree[-1].scan(recursive=True)
+                    break
             else:
-                if name is not None:
-                    d.update(tree.get(name, {}))
-        except KeyError:
-            print("No OsEntry item for key '{}'".format(name))
-            raise
+                for child in tree[-1]:
+                    child.scan()
+        else:
+            tree[-1].scan(recursive=True)
 
-        return result
+        return tree
 
-    def scan(self, name=None, path=None, key=list()):
-        entry = Entry(key=key, name=name, path=path)
-        entry.scan()
-        self.new(entry)
-
-        for name, value in entry.keys.items():
-            self.scan(name=name, path=value.path, key=list(entry.key))
+    def dict(self, recursive=False):
+        data = dict()
+        self.entry.load()
+        merge_dict(data, self.entry.dict())
+        # if '^.*$' in data:
+        #     data.setdefault('*', {})
+        for x in self:
+            d = data.setdefault(x.name, {})
+            if recursive:
+                merge_dict(d, x.dict(recursive=recursive))
+        return data

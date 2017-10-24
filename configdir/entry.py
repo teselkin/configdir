@@ -71,39 +71,40 @@ class EntryKey(object):
 
 
 class Entry(object):
-    def __init__(self, name=None, path=None, key=list(), sep=os.sep):
+    def __init__(self, name=None, path=None):
         self.name = name
+        self.path = path
         self.keys = dict()
         self.files = dict()
         self.data = dict()
-        self.key = EntryKey(key=key, subkey=name)
-        self.path = EntryPath(path=path, sep=sep)
+        self.patterns = dict()
 
     def scan(self):
-        """
-        Scan directory entry
-        Return tuple of dictionaries
-            dirs
-              key: key name (might not be equal to directory name)
-              value: OsEntry element for next entry
-            files
-              key: file name
-              value: OsEntry element for that file
-        :param path:
-        :return:
-        """
-        self.files = dict()
-        self.keys = dict()
         for x in os.scandir(str(self.path)):
             if x.is_dir():
                 self.keys[x.name] = x
             else:
                 self.files[x.name] = x
 
+        if 'data.yaml' in self.files:
+            with open(self.files['data.yaml'].path) as f:
+                data = yaml.load(f, Loader=yaml.BaseLoader)
+
+            for key, value in data.items():
+                if str(key).startswith('^'):
+                    self.patterns[key] = value
+                else:
+                    self.keys[key] = None
+
+        for name, entry in self.keys.items():
+            if entry:
+                yield name, entry.path
+
     def load(self, whitelist=None):
         data = dict()
         if 'data.yaml' in self.files:
-            data.update(yaml.load(open(self.files['data.yaml'].path)))
+            with open(self.files['data.yaml'].path) as f:
+                data.update(yaml.load(f, Loader=yaml.BaseLoader))
 
         keys = list()
         if whitelist:
@@ -115,14 +116,17 @@ class Entry(object):
 
         for name in keys:
             data.setdefault(name, {})
+            self.data[name] = data.get(name, {})
 
         return data
 
     def dict(self):
-        return dict()
+        data = dict()
+        data.update(self.data)
+        for key in self.keys:
+            data.setdefault(str(key), {})
 
-    def tree(self):
-        tree = dict()
-        for x in self.keys.keys():
-            tree.setdefault(x, {})
-        return tree
+        for pattern, value in self.patterns.items():
+            data.setdefault(pattern, value)
+
+        return data
