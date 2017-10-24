@@ -47,8 +47,10 @@ def expand_dict(d1, recursive=False):
 
     for k, v in d1.items():
         for pattern, value in patterns:
-            if pattern.match(k):
+            m = pattern.match(k)
+            if m:
                 merge_dict(v, value)
+                merge_dict(v, m.groupdict())
 
     if recursive:
         for value in d1.values():
