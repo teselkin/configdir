@@ -3,7 +3,6 @@ from configdir.entry import EntryKey
 from configdir.utils import merge_dict
 from configdir.utils import expand_dict
 
-import os
 import yaml
 
 
@@ -57,18 +56,17 @@ class ConfigDir(object):
         if expand:
             expand_dict(data, recursive=True)
 
-        return data
+        return data[None]
 
     def get(self, key, recursive=True):
         if isinstance(key, str):
             key = EntryKey(key)
 
         data = self.dict(key, recursive=recursive)
-        d = data[None]
 
         for name in key:
             try:
-                d = (d.get(name) or d['*'])
+                data = (data.get(name) or data['*'])
             except KeyError:
                 if self.strict:
                     raise Exception("Bad key '{}' - '{}' not found"
@@ -76,7 +74,7 @@ class ConfigDir(object):
                 else:
                     return {}
 
-        return d
+        return data
 
     def getall(self, recursive=True):
         data = dict()
