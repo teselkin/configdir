@@ -3,12 +3,39 @@ from configdir.entry import EntryKey
 from configdir.utils import merge_dict
 from configdir.utils import expand_dict
 
+import os
+import yaml
+
 
 class ConfigDir(object):
     def __init__(self, path, strict=True):
-        self.root = Tree.root(path=path)
+        self.path = path
+        self.root = Tree.root(path=self.path)
         self.strict = strict
+        self.schema = list()
+        self.scan()
+
+    def __iter__(self):
+        for x in self.iterate(self.root):
+            if x:
+                if self.schema:
+                    yield dict(zip(self.schema, x))
+                else:
+                    yield x
+
+    def scan(self):
         self.root.scan()
+        if 'metadata.yaml' in self.root.entry.files:
+            with open(self.root.entry.files['metadata.yaml'].path) as f:
+                metadata = yaml.load(f, Loader=yaml.BaseLoader)
+                self.schema.extend(metadata.get('schema', []))
+
+    def iterate(self, tree, keys=list()):
+        for child in tree:
+            child.scan()
+            for x in self.iterate(child, keys + [child.name, ]):
+                yield x
+        yield keys
 
     def dict(self, key, recursive=True, expand=True):
         if isinstance(key, str):
