@@ -35,8 +35,8 @@ def expand_dict(lval, recursive=False, expand_pattern=False):
         if str(key).startswith('^'):
             if key == '^.*$':
                 lval.setdefault('*', {})
-            value = lval.pop(key)
             if expand_pattern:
+                value = lval.pop(key)
                 if isinstance(value, dict):
                     patterns.append((re.compile(key), value))
                 else:
