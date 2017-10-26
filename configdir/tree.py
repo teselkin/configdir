@@ -32,22 +32,33 @@ class Tree(object):
     def child(self, name):
         return self._children.get(name)
 
-    def select(self, key):
-        tree = [self, ]
-        for name in key:
-            if name:
-                child = tree[-1].child(name)
+    def children(self, name=None):
+        children = list()
+        if name:
+            child = self.child('*')
+            if child:
+                children.append(child)
+            if name != '*':
+                child = self.child(name)
                 if child:
-                    child.scan()
-                    tree.append(child)
-                else:
-                    tree[-1].scan(recursive=True)
-                    break
-            else:
-                for child in tree[-1]:
-                    child.scan()
+                    children.append(child)
         else:
-            tree[-1].scan(recursive=True)
+            children.extend(self._children.values())
+        return children
+
+    def select(self, key):
+        tree = [[self, ], ]
+        for name in key:
+            children = list()
+            for item in tree[-1]:
+                for child in item.children(name):
+                    child.scan()
+                    children.append(child)
+            if children:
+                tree.append(children)
+
+        for child in tree[-1]:
+            child.scan(recursive=True)
 
         return tree
 
@@ -55,8 +66,6 @@ class Tree(object):
         data = dict()
         self.entry.load()
         merge_dict(data, self.entry.dict())
-        # if '^.*$' in data:
-        #     data.setdefault('*', {})
         for x in self:
             d = data.setdefault(x.name, {})
             if recursive:

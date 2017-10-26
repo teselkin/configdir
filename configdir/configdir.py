@@ -41,20 +41,26 @@ class ConfigDir(object):
             key = EntryKey(key)
 
         tree = self.root.select(key)
+        keys = [None, ]
+        for x in key:
+            keys.append(x)
 
         data = dict()
         d = data
-        x = None
-        for x in tree:
-            d = d.setdefault(x.name, {})
-            merge_dict(d, x.dict())
+        items = list()
+        for key, items in zip(keys, tree):
+            for x in items:
+                merge_dict(d.setdefault(x.name, {}), x.dict())
+            expand_dict(d, expand_pattern=expand)
+            d = d.setdefault(key, {})
         else:
             if recursive:
-                if x:
+                for x in items:
                     merge_dict(d, x.dict(recursive=True))
+                expand_dict(d, recursive=True, expand_pattern=expand)
 
         if expand:
-            expand_dict(data, recursive=True)
+            expand_dict(data, recursive=True, expand_pattern=True)
 
         return data[None]
 
@@ -87,6 +93,6 @@ class ConfigDir(object):
             xdict = x.dict(recursive=recursive)
             merge_dict(data.setdefault(x.name, {}), xdict)
 
-        expand_dict(data, recursive=True)
+        expand_dict(data, recursive=True, expand_pattern=True)
 
         return data
