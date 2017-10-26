@@ -17,10 +17,7 @@ class ConfigDir(object):
     def __iter__(self):
         for x in self.iterate(self.root):
             if x:
-                if self.schema:
-                    yield dict(zip(self.schema, x))
-                else:
-                    yield x
+                yield x
 
     def scan(self):
         self.root.scan()
