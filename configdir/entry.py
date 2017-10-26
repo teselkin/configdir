@@ -31,7 +31,7 @@ class EntryPath(object):
 
 class EntryKey(object):
     def __init__(self, key, subkey=None, sep=None):
-        self.sep = sep or ':'
+        self.sep = sep or '|'
         if isinstance(key, list):
             self._ = []
             self._.extend(key)
