@@ -79,6 +79,26 @@ class ConfigDir(object):
 
         return data
 
+    def match(self, key):
+        if isinstance(key, str):
+            key = EntryKey(key)
+
+        data = self.dict(key, expand=False)
+
+        d = data
+        for name in key:
+            d.setdefault(name, {})
+            expand_dict(d, recursive=False, expand_pattern=False)
+            d = d[name]
+
+        d = data
+        for name in key:
+            expand_dict(d, recursive=False, expand_pattern=True)
+            d = d[name]
+        expand_dict(d, recursive=True, expand_pattern=True)
+
+        return d
+
     def getall(self, recursive=True):
         data = dict()
         self.root.scan()
