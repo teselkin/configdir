@@ -3,57 +3,58 @@ import re
 re_any = re.compile(r'^.*$')
 
 
-def merge_dict(d1, d2):
-    if not isinstance(d1, dict):
+def merge_dict(lval, rval, replace=True):
+    if not isinstance(lval, dict):
         return
 
-    if not isinstance(d2, dict):
+    if not isinstance(rval, dict):
         return
 
-    for k2, v2 in d2.items():
-        if isinstance(v2, dict):
-            d1.setdefault(k2, dict())
-            merge_dict(d1[k2], v2)
-        elif isinstance(v2, list):
-            d1.setdefault(k2, list())
-            for x in reversed(v2):
-                d1[k2].insert(0, x)
+    for rval_key, rval_value in rval.items():
+        if isinstance(rval_value, dict):
+            lval.setdefault(rval_key, dict())
+            merge_dict(lval[rval_key], rval_value)
+        elif isinstance(rval_value, list):
+            lval.setdefault(rval_key, list())
+            for x in reversed(rval_value):
+                lval[rval_key].insert(0, x)
         else:
-            d1[k2] = v2
+            if replace:
+                lval[rval_key] = rval_value
+            else:
+                lval.setdefault(rval_key, rval_value)
 
-    return
 
-
-def expand_dict(d1, recursive=False):
-    if not isinstance(d1, dict):
+def expand_dict(lval, recursive=False, expand_pattern=False):
+    if not isinstance(lval, dict):
         return
 
     patterns = list()
-    for k, v in d1.items():
-        if str(k).startswith('^'):
-            if isinstance(v, dict):
-                patterns.append(k)
-            else:
-                raise Exception(
-                    "Values for regexp matching should be dict, not {}: "
-                    "{}".format(type(v).__name__, {k: v}))
+    keys = list(lval.keys())
+    for key in keys:
+        if str(key).startswith('^'):
+            if key == '^.*$':
+                lval.setdefault('*', {})
+            value = lval.pop(key)
+            if expand_pattern:
+                if isinstance(value, dict):
+                    patterns.append((re.compile(key), value))
+                else:
+                    raise Exception(
+                        "Values for regexp matching should be dict, not {}: "
+                        "{}".format(type(value).__name__, {key: value}))
 
-    if '^.*$' in patterns:
-        d1.setdefault('*', {})
+    for lval_key, lval_value in lval.items():
+        if lval_key != '*':
+            merge_dict(lval_value, lval.get('*', {}), replace=False)
 
-    for x in range(len(patterns)):
-        pattern = patterns[x]
-        patterns[x] = (re.compile(pattern), d1.pop(pattern))
-
-    for k, v in d1.items():
-        for pattern, value in patterns:
-            m = pattern.match(k)
-            if m:
-                merge_dict(v, value)
-                merge_dict(v, m.groupdict())
+        if expand_pattern:
+            for pattern, value in patterns:
+                m = pattern.match(lval_key)
+                if m:
+                    merge_dict(lval_value, value)
+                    merge_dict(lval_value, m.groupdict())
 
     if recursive:
-        for value in d1.values():
+        for value in lval.values():
             expand_dict(value, recursive=recursive)
-
-    return
