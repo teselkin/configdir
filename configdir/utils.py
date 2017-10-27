@@ -38,7 +38,7 @@ def expand_dict(lval, recursive=False, expand_pattern=False):
             if expand_pattern:
                 value = lval.pop(key)
                 if isinstance(value, dict):
-                    patterns.append((re.compile(key), value))
+                    patterns.append((re.compile(key, re.IGNORECASE), value))
                 else:
                     raise Exception(
                         "Values for regexp matching should be dict, not {}: "
