@@ -27,11 +27,14 @@ class ConfigDir(object):
                 self.schema.extend(metadata.get('schema', []))
 
     def iterate(self, tree, keys=list()):
+        last = True
         for child in tree:
+            last = False
             child.scan()
             for x in self.iterate(child, keys + [child.name, ]):
                 yield x
-        yield keys
+        if last:
+            yield keys
 
     def dict(self, key, recursive=True, expand=True):
         if isinstance(key, str):
