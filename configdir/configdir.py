@@ -7,7 +7,7 @@ import yaml
 
 
 class ConfigDir(object):
-    def __init__(self, path, strict=True):
+    def __init__(self, path, strict=False):
         self.path = path
         self.root = Tree.root(path=self.path)
         self.strict = strict
