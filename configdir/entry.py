@@ -1,33 +1,10 @@
-import os
 import yaml
 
+try:
+    from os import scandir
+except ImportError:
+    from scandir import scandir
 
-class EntryPath(object):
-    def __init__(self, path, sep=None):
-        self.sep = sep or os.sep
-        self._ = self.split(path)
-
-    def __str__(self):
-        return self.sep.join(self.elements)
-
-    def split(self, path):
-        if isinstance(path, str):
-            elements = path.split(self.sep)
-        elif isinstance(path, list):
-            elements = path
-        else:
-            raise Exception("Bad input path '{}' - type '{}' unsupported"
-                            .format(path, type(path)))
-
-        for x in reversed(range(len(elements))):
-            if not elements[x]:
-                elements.pop(x)
-
-        return elements
-
-    @property
-    def elements(self):
-        return [x for x in self._]
 
 class EntryKey(object):
     def __init__(self, key, subkey=None, sep=None):
@@ -83,7 +60,7 @@ class Entry(object):
         }
 
     def scan(self):
-        for x in os.scandir(str(self.path)):
+        for x in scandir(str(self.path)):
             if x.is_dir():
                 self.keys[self.special.get(x.name, x.name)] = x
             else:
