@@ -1,2 +1,2 @@
 pyyaml
-scandir;python_version<3.5
+scandir
