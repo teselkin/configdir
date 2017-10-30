@@ -52,9 +52,9 @@ def expand_dict(lval, recursive=False, expand_pattern=False):
             for pattern, value in patterns:
                 m = pattern.match(lval_key)
                 if m:
-                    merge_dict(lval_value, value)
-                    merge_dict(lval_value, m.groupdict())
+                    merge_dict(lval_value, value, replace=False)
+                    merge_dict(lval_value, m.groupdict(), replace=False)
 
     if recursive:
         for value in lval.values():
-            expand_dict(value, recursive=recursive)
+            expand_dict(value, recursive=True, expand_pattern=expand_pattern)
