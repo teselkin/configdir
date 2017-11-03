@@ -1,9 +1,13 @@
+import re
 import yaml
 
 try:
     from os import scandir
 except ImportError:
     from scandir import scandir
+
+
+re_quoted = re.compile(r'%([A-Fa-f0-9]{2})')
 
 
 class EntryKey(object):
@@ -61,7 +65,8 @@ class Entry(object):
     def scan(self):
         for x in scandir(str(self.path)):
             if x.is_dir():
-                self.keys[self.special.get(x.name, x.name)] = x
+                name = self.unquote(x.name)
+                self.keys[self.special.get(name, name)] = x
             else:
                 self.files[x.name] = x
 
@@ -109,3 +114,7 @@ class Entry(object):
             data.setdefault(pattern, value)
 
         return data
+
+    def unquote(self, value):
+        return re_quoted.sub(lambda m: chr(int(m.group(1), 16)), value)
+
