@@ -36,13 +36,26 @@ class ConfigDir(object):
         if last:
             yield keys
 
+    def result(self, key, data={}):
+        result = dict()
+        result.update(data)
+        result['__meta__'] = {
+                'key': list(key),
+                'schema': list(self.schema),
+                'is_empty': len(data) == 0,
+            }
+        return result
+
+
     def dict(self, key, recursive=True, expand=True):
         if isinstance(key, str):
-            key = EntryKey(key)
+            entry_key = EntryKey(key)
+        else:
+            entry_key = key
 
-        tree = self.root.select(key)
+        tree = self.root.select(entry_key)
         keys = [None, ]
-        for x in key:
+        for x in entry_key:
             keys.append(x)
 
         data = dict()
@@ -62,45 +75,49 @@ class ConfigDir(object):
         if expand:
             expand_dict(data, recursive=True, expand_pattern=True)
 
-        return data[None]
+        return self.result(entry_key, data[None])
 
     def get(self, key, recursive=True):
         if isinstance(key, str):
-            key = EntryKey(key)
+            entry_key = EntryKey(key)
+        else:
+            entry_key = key
 
-        data = self.dict(key, recursive=recursive)
+        data = self.dict(entry_key, recursive=recursive)
 
-        for name in key:
+        for name in entry_key:
             try:
                 data = (data.get(name) or data['*'])
             except KeyError:
                 if self.strict:
                     raise Exception("Bad key '{}' - '{}' not found"
-                        .format(str(key), name))
+                        .format(str(entry_key), name))
                 else:
-                    return {}
+                    return self.result(entry_key)
 
-        return data
+        return self.result(entry_key, data)
 
     def match(self, key):
         if isinstance(key, str):
-            key = EntryKey(key)
+            entry_key = EntryKey(key)
+        else:
+            entry_key = key
 
-        data = self.dict(key, expand=False)
+        data = self.dict(entry_key, expand=False)
 
         d = data
-        for name in key:
+        for name in entry_key:
             d.setdefault(name, {})
             expand_dict(d, recursive=False, expand_pattern=False)
             d = d[name]
 
         d = data
-        for name in key:
+        for name in entry_key:
             expand_dict(d, recursive=False, expand_pattern=True)
             d = d[name]
         expand_dict(d, recursive=True, expand_pattern=True)
 
-        return d
+        return self.result(entry_key, d)
 
     def getall(self, recursive=True):
         data = dict()
