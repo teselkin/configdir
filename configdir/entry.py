@@ -89,7 +89,9 @@ class Entry(object):
         data = dict()
         if 'data.yaml' in self.files:
             with open(self.files['data.yaml'].path) as f:
-                data.update(yaml.load(f, Loader=yaml.BaseLoader))
+                data_yaml = yaml.load(f, Loader=yaml.BaseLoader)
+                if data_yaml:
+                    data.update(data_yaml)
 
         keys = list()
         if whitelist:
