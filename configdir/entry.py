@@ -74,11 +74,12 @@ class Entry(object):
             with open(self.files['data.yaml'].path) as f:
                 data = yaml.load(f, Loader=yaml.BaseLoader)
 
-            for key, value in data.items():
-                if str(key).startswith('^'):
-                    self.patterns[key] = value
-                else:
-                    self.keys[key] = None
+            if data:
+                for key, value in data.items():
+                    if str(key).startswith('^'):
+                        self.patterns[key] = value
+                    else:
+                        self.keys[key] = None
 
         for name, entry in self.keys.items():
             if entry:
