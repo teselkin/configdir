@@ -8,7 +8,7 @@ setup(
     version="0.3",
     packages=find_packages(),
     install_requires=requirements,
-    download_url='http://github.com/teselkin/configdir/archive/master.tar.gz#egg=configdir',
+    download_url='http://github.com/teselkin/configdir/archive/master.tar.gz#egg=configdir-0.3',
 
     author="Dmitry Teselkin",
     author_email="teselkin.d@gmail.com",
